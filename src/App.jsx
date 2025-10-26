@@ -1,28 +1,35 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react';
+import Header from './components/Header.jsx';
+import AuthGate from './components/AuthGate.jsx';
+import DashboardOwner from './components/DashboardOwner.jsx';
+import DashboardCustomer from './components/DashboardCustomer.jsx';
+import { authStore, subscribeAuth } from './lib/storage.js';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [session, setSession] = useState(authStore.getSession());
+
+  useEffect(() => {
+    const unsub = subscribeAuth(setSession);
+    return () => unsub();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          Vibe Coding Platform
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Your AI-powered development environment
-        </p>
-        <div className="text-center">
-          <button
-            onClick={() => setCount(count + 1)}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
-          >
-            Count is {count}
-          </button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white text-slate-900">
+      <Header session={session} />
+      <main className="mx-auto max-w-7xl px-4 pb-12">
+        {!session?.user ? (
+          <div className="pt-8">
+            <AuthGate />
+          </div>
+        ) : session.user.role === 'owner' ? (
+          <DashboardOwner />
+        ) : (
+          <DashboardCustomer />
+        )}
+      </main>
+      <footer className="border-t mt-8 py-6 text-center text-sm text-slate-500">
+        © {new Date().getFullYear()} Billboard Booker. All rights reserved.
+      </footer>
     </div>
-  )
+  );
 }
-
-export default App
